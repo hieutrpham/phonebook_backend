@@ -1,8 +1,15 @@
-import express, { response } from 'express'
+import express, { json, response } from 'express'
+import morgan from 'morgan'
 
 const app = express()
 
 app.use(express.json())
+
+morgan.token('data', function getData(req) { 
+    return JSON.stringify(req.body)
+})
+
+app.use(morgan(':method :url :response-time :data'))
 
 let entries = [
     { 
@@ -77,7 +84,7 @@ app.post('/api/entries', (request,response)=>{
     else if (!body.number) {
         return response.status(400).json({error: "number missing"})
     }
-    else if (!entries.find(p => p.name === body.name)) {
+    else if (entries.find(p => p.name === body.name)) {
         return response.status(400).json({error: "name must be unique"})
     }
 
