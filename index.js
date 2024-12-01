@@ -1,9 +1,12 @@
-import express, { json, response } from 'express'
+import express from 'express'
 import morgan from 'morgan'
+import cors from 'cors'
 
 const app = express()
 
 app.use(express.json())
+
+app.use(cors())
 
 morgan.token('data', function getData(req) { 
     return JSON.stringify(req.body)
@@ -99,7 +102,7 @@ app.post('/api/entries', (request,response)=>{
     response.json(person)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
 console.log(`Server running on port ${PORT}`)
 })

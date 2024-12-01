@@ -1,4 +1,4 @@
-GET http://localhost:3001/info
+GET http://localhost:3001/api/entries/
 
 
 ###
@@ -6,5 +6,9 @@ GET http://localhost:3001/info
 POST http://localhost:3001/api/entries HTTP/1.1
 content-type: application/json
 
-{"name": "hieu pham13123",
+{"name": "pham13123",
 "number": "131234"}
+
+
+###
+DELETE http://localhost:3001/api/entries/3 HTTP/1.1
