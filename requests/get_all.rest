@@ -1,5 +1,7 @@
 GET http://localhost:3001/api/entries/
 
+###
+GET https://phonebook-be-hp2024.fly.dev/info
 
 ###
 
