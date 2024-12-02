@@ -1,6 +1,11 @@
+import 'dotenv/config'
 import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
+import mongoose from 'mongoose'
+import personSchema from './models/Person.js'
+
+const Person = mongoose.model('Person', personSchema)
 
 const app = express()
 
@@ -16,36 +21,13 @@ morgan.token('data', function getData(req) {
 
 app.use(morgan(':method :url :response-time :data'))
 
-let entries = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
 app.get('/api/entries', (request, response) => {
-    response.json(entries)
+    Person.find({}).then(person => response.json(person))
 })
 
 app.get('/info', (request, response) => {
     response.send(
-        `Phonebook has info for ${entries.length} people
+        `Phonebook has info for ${Person.length} people
         <p>
         ${Date()}
         </p>
@@ -89,19 +71,19 @@ app.post('/api/entries', (request,response)=>{
     else if (!body.number) {
         return response.status(400).json({error: "number missing"})
     }
-    else if (entries.find(p => p.name === body.name)) {
-        return response.status(400).json({error: "name must be unique"})
-    }
+    // else if (entries.find(p => p.name === body.name)) {
+    //     return response.status(400).json({error: "name must be unique"})
+    // }
 
-    const person = {
-        id: generateId(),
+    const person = new Person ({
         name: body.name,
         number: body.number
-    }
-    
-    entries = entries.concat(person)
+    })
 
-    response.json(person)
+    person.save().then(result => {
+        console.log('person saved', result);
+        response.json(person)
+    })
 })
 
 const PORT = process.env.PORT || 3001
