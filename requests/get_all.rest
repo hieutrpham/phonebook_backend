@@ -1,7 +1,7 @@
-GET http://localhost:3001/api/entries/
+GET http://localhost:3001/api/entries/123
 
 ###
-GET https://phonebook-be-hp2024.fly.dev/info
+GET http://localhost:3001/info
 
 ###
 
@@ -9,8 +9,14 @@ POST http://localhost:3001/api/entries HTTP/1.1
 content-type: application/json
 
 {"name": "pham13123",
-"number": "131234"}
-
+"number": 131234}
 
 ###
-DELETE http://localhost:3001/api/entries/3 HTTP/1.1
+PUT http://localhost:3001/api/entries/674eea8d91c636695bb88d83
+content-type: application/json
+
+{"name": "pham13123",
+"number": "234"}
+
+###
+DELETE http://localhost:3001/api/entries/674c7c8f32b89efe93fec316 HTTP/1.1

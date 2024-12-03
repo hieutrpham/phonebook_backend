@@ -5,8 +5,6 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import personSchema from './models/Person.js'
 
-const Person = mongoose.model('Person', personSchema)
-
 const app = express()
 
 app.use(express.json())
@@ -21,46 +19,55 @@ morgan.token('data', function getData(req) {
 
 app.use(morgan(':method :url :response-time :data'))
 
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+    next(error)
+  }
+  
+
+const Person = mongoose.model('Person', personSchema)
+
 app.get('/api/entries', (request, response) => {
-    Person.find({}).then(person => response.json(person))
+    Person.find({}).then(person => {response.json(person)})
+        .catch(err => next(err))
 })
 
-app.get('/info', (request, response) => {
-    response.send(
-        `Phonebook has info for ${Person.length} people
-        <p>
-        ${Date()}
-        </p>
-        `
-    )
+app.get('/info', (request, response, next) => {
+    Person.countDocuments({})
+        .then(count => {
+            response.send(`
+                <p>Phonebook has info for ${count} people</p>
+                <p>${Date()}</p>
+                `)
+        })
+        .catch(err => next(err))
 })
 
-app.get('/api/entries/:id', (request,response)=>{
+app.get('/api/entries/:id', (request, response, next) => {
     const id = request.params.id
-    const person = entries.find(entry=>entry.id===id)
-    if (person) {
-        response.json(person)
-    }
-    else {response.status(404).end()}
+    console.log(id);
+    
+    Person.findById(id).then(person => {
+        if (person) {response.json(person)}
+        else {response.status(404).end()}
+    })
+    .catch(err => next(err))
+
 })
 
-app.delete('/api/entries/:id', (request,response)=>{
-    const id = request.params.id
-    entries = entries.filter(person => person.id !== id)
-    response.status(204).end()
+app.delete('/api/entries/:id', (request,response,next)=>{
+    Person.findByIdAndDelete(request.params.id)
+        .then(() => response.status(204).end())
+        .catch(err => next(err))
 })
 
-const generateId = () => {
-    return Math.floor(Math.random()*(99999999))
-}
 
-app.post('/api/entries', (request,response)=>{
+app.post('/api/entries', (request,response,next)=>{
     const body = request.body
-    
-    console.log(!body, !body.name, !body.number);
-
-    console.log(!body || !body.name || !body.number);
-    
 
     if (!body) {
         return response.status(400).json({error: "content missing"})
@@ -71,9 +78,6 @@ app.post('/api/entries', (request,response)=>{
     else if (!body.number) {
         return response.status(400).json({error: "number missing"})
     }
-    // else if (entries.find(p => p.name === body.name)) {
-    //     return response.status(400).json({error: "name must be unique"})
-    // }
 
     const person = new Person ({
         name: body.name,
@@ -84,9 +88,34 @@ app.post('/api/entries', (request,response)=>{
         console.log('person saved', result);
         response.json(person)
     })
+        .catch(err => next(err))
 })
+
+app.put('/api/entries/:id', (request, response) => {
+    
+    const body = request.body
+    const id = request.params.id
+
+    console.log(id);
+    
+
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+        
+    Person.findByIdAndUpdate(request.params.id, person, {new:true})
+        .then(newPerson => {
+            console.log(newPerson);
+            
+            return response.json(newPerson)})
+        .catch(err => next(err))
+})
+
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`)
 })
